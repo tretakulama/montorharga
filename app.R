@@ -31,7 +31,7 @@ ui <- page_navbar(
       ),
       actionButton("reload1", "Reload Data")
     ),
-    plotOutput("plot1")
+    plotlyOutput("plot1")
   ),
   nav_panel(
     "Pasar Babalan",
@@ -51,7 +51,7 @@ ui <- page_navbar(
       ),
       actionButton("reload2", "Reload Data")
     ),
-    plotOutput("plot2")
+    plotlyOutput("plot2")
   ),
   nav_panel(
     "Pasar Kuala",
@@ -71,7 +71,7 @@ ui <- page_navbar(
       ),
       actionButton("reload3", "Reload Data")
     ),
-    plotOutput("plot3")
+    plotlyOutput("plot3")
   ),
   nav_spacer(),
   nav_panel(
@@ -197,21 +197,21 @@ server <- function(input, output) {
       )
     removeModal()
     
-    return(plot)
+    ggplotly(plot)
   }
   
 # percobaan 1 ----
-  output$plot1 <- renderPlot({
+  output$plot1 <- renderPlotly({
     req(input$Komoditas1)
     buatplot(data_longer()[[1]], input$Komoditas1, input$rentangtanggal1)
   })
   
-  output$plot2 <- renderPlot({
+  output$plot2 <- renderPlotly({
     req(input$Komoditas2)
     buatplot(data_longer()[[2]], input$Komoditas2, input$rentangtanggal2)
   })
 
-  output$plot3 <- renderPlot({
+  output$plot3 <- renderPlotly({
     req(input$Komoditas3)
     buatplot(data_longer()[[3]], input$Komoditas3, input$rentangtanggal3)
   })
