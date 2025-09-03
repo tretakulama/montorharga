@@ -139,7 +139,7 @@ server <- function(input, output) {
           names_to = "Tanggal",
           values_to = "Harga"
         )|>
-        mutate(Tanggal = dmy(Tanggal, locale = "id"))
+        mutate(Tanggal = dmy(Tanggal))
     }
     return(data_longer_)
   })
