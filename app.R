@@ -82,9 +82,11 @@ ui <- page_navbar(
       "Link googlesheets: ",
       width = "500px"
     ),
+    p("Pastikan bahwa judul kolom berformat dd/mm/yyyy agar data terbaca oleh sistem."),
     actionButton(
       "simpan",
-      "Simpan"
+      "Simpan",
+      width = "400px"
     )
   ),
   title = "Monitoring Harga Pasar",
