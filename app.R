@@ -11,6 +11,7 @@ library(shiny)
 library(bslib)
 library(googlesheets4)
 library(tidyverse)
+library(plotly)
 
 ui <- page_navbar(
   nav_panel(
