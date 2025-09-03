@@ -12,6 +12,7 @@ library(bslib)
 library(googlesheets4)
 library(tidyverse)
 library(plotly)
+library(httr)
 
 ui <- page_navbar(
   nav_panel(
@@ -102,23 +103,70 @@ server <- function(input, output) {
   ambildata <- function(){
     
     gs4_deauth()
+    
+    # --- BLOK DIAGNOSTIK 1: BACA LINK ---
+    message("Mencoba membaca file link.txt...")
     link <- read_lines("link.txt")
+    message("URL yang berhasil dibaca dari link.txt adalah: '", link, "'")
+    # ------------------------------------
+    
+    if (length(link) == 0 || link == "") {
+      showNotification("URL Google Sheet di link.txt kosong.", type = "error", duration = 10)
+      return(NULL)
+    }
     
     showModal(modalDialog("Mohon tunggu... Data sedang diambil.", footer = NULL, easyClose = FALSE)) 
     
-    sheet_names <- sheet_names(link)
+    # --- BLOK DIAGNOSTIK 2: UJI KONEKSI DASAR ---
+    message("Menguji koneksi dasar ke Google Sheets menggunakan httr...")
+    require(httr) # Pastikan httr di-load
+    response <- try(GET(link, timeout(10)), silent = TRUE) # Coba konek dalam 10 detik
     
-    dataset <- NULL
+    if (inherits(response, "try-error")) {
+      message("GAGAL melakukan GET request. Kemungkinan server diblokir.")
+    } else {
+      message("Berhasil melakukan GET request. Status code: ", status_code(response))
+    }
+    # --------------------------------------------
+    
+    dataset <- tryCatch({
+      message("Mencoba mengambil data dengan googlesheets4::read_sheet()...")
+      sheet_names <- sheet_names(link)
+      
+      dataset_list <- NULL
       for (i in 1:length(sheet_names)) {
-        dataset[[i]] <- read_sheet(
+        dataset_list[[i]] <- read_sheet(
           ss = link,
           sheet = i,
-          col_names = T,
+          col_names = TRUE,
           col_types = "c"
         )
       }
+      
+      removeModal()
+      message("Data berhasil diambil dan diproses oleh googlesheets4.")
+      showNotification("Data berhasil dimuat ulang!", type = "message")
+      
+      # --- BLOK DIAGNOSTIK 3: PERIKSA STRUKTUR DATA ---
+      message("Mencetak struktur data yang diambil:")
+      print(str(dataset_list))
+      # ---------------------------------------------
+      
+      return(dataset_list)
+      
+    }, error = function(e) {
+      removeModal()
+      # --- BLOK DIAGNOSTIK 4: TANGKAP ERROR ---
+      message("!!! TERJADI ERROR saat mengambil data: ", e$message)
+      # ------------------------------------------
+      showNotification(
+        paste("Gagal mengambil data. Error:", e$message),
+        type = "error",
+        duration = 15
+      )
+      return(NULL)
+    })
     
-    removeModal()
     return(dataset)
   }
   
