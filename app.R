@@ -174,13 +174,13 @@ server <- function(input, output) {
     data_plot <- datainput|>
       filter(Komoditas == inputkomoditas)|>
       filter(rangetanggal[[1]] <= Tanggal & Tanggal <= rangetanggal[[2]])
-    plot <- ggplot(data_plot) +
-      geom_point(mapping = aes(x = Tanggal, y = Harga)) +
-      geom_line(mapping = aes(x = Tanggal, y = Harga))
-
+    
+    plot <- plot_ly(data_plot, type = "scatter", mode = "lines")|>
+      add_trace(x = ~Tanggal, y = ~Harga, name = "Harga")
+    
     removeModal()
     
-    ggplotly(plot)
+    plot
   }
   
 # percobaan 1 ----
