@@ -12,7 +12,6 @@ library(bslib)
 library(googlesheets4)
 library(tidyverse)
 library(plotly)
-library(httr)
 
 ui <- page_navbar(
   nav_panel(
@@ -33,7 +32,14 @@ ui <- page_navbar(
       ),
       actionButton("reload1", "Reload Data")
     ),
-    plotlyOutput("plot1")
+    verbatimTextOutput(
+      "data_head"
+    )
+    
+    
+    
+    
+    
   ),
   nav_panel(
     "Pasar Babalan",
@@ -52,8 +58,8 @@ ui <- page_navbar(
         format = "dd-mm-yyyy"
       ),
       actionButton("reload2", "Reload Data")
-    ),
-    plotlyOutput("plot2")
+    )
+    # plotlyOutput("plot2")
   ),
   nav_panel(
     "Pasar Kuala",
@@ -73,7 +79,7 @@ ui <- page_navbar(
       ),
       actionButton("reload3", "Reload Data")
     ),
-    plotlyOutput("plot3")
+    # plotlyOutput("plot3")
   ),
   nav_spacer(),
   nav_panel(
@@ -103,70 +109,23 @@ server <- function(input, output) {
   ambildata <- function(){
     
     gs4_deauth()
-    
-    # --- BLOK DIAGNOSTIK 1: BACA LINK ---
-    message("Mencoba membaca file link.txt...")
     link <- read_lines("link.txt")
-    message("URL yang berhasil dibaca dari link.txt adalah: '", link, "'")
-    # ------------------------------------
-    
-    if (length(link) == 0 || link == "") {
-      showNotification("URL Google Sheet di link.txt kosong.", type = "error", duration = 10)
-      return(NULL)
-    }
     
     showModal(modalDialog("Mohon tunggu... Data sedang diambil.", footer = NULL, easyClose = FALSE)) 
     
-    # --- BLOK DIAGNOSTIK 2: UJI KONEKSI DASAR ---
-    message("Menguji koneksi dasar ke Google Sheets menggunakan httr...")
-    require(httr) # Pastikan httr di-load
-    response <- try(GET(link, timeout(10)), silent = TRUE) # Coba konek dalam 10 detik
+    sheet_names <- sheet_names(link)
     
-    if (inherits(response, "try-error")) {
-      message("GAGAL melakukan GET request. Kemungkinan server diblokir.")
-    } else {
-      message("Berhasil melakukan GET request. Status code: ", status_code(response))
-    }
-    # --------------------------------------------
-    
-    dataset <- tryCatch({
-      message("Mencoba mengambil data dengan googlesheets4::read_sheet()...")
-      sheet_names <- sheet_names(link)
-      
-      dataset_list <- NULL
+    dataset <- NULL
       for (i in 1:length(sheet_names)) {
-        dataset_list[[i]] <- read_sheet(
+        dataset[[i]] <- read_sheet(
           ss = link,
           sheet = i,
-          col_names = TRUE,
+          col_names = T,
           col_types = "c"
         )
       }
-      
-      removeModal()
-      message("Data berhasil diambil dan diproses oleh googlesheets4.")
-      showNotification("Data berhasil dimuat ulang!", type = "message")
-      
-      # --- BLOK DIAGNOSTIK 3: PERIKSA STRUKTUR DATA ---
-      message("Mencetak struktur data yang diambil:")
-      print(str(dataset_list))
-      # ---------------------------------------------
-      
-      return(dataset_list)
-      
-    }, error = function(e) {
-      removeModal()
-      # --- BLOK DIAGNOSTIK 4: TANGKAP ERROR ---
-      message("!!! TERJADI ERROR saat mengambil data: ", e$message)
-      # ------------------------------------------
-      showNotification(
-        paste("Gagal mengambil data. Error:", e$message),
-        type = "error",
-        duration = 15
-      )
-      return(NULL)
-    })
     
+    removeModal()
     return(dataset)
   }
   
@@ -222,30 +181,52 @@ server <- function(input, output) {
     data_plot <- datainput|>
       filter(Komoditas == inputkomoditas)|>
       filter(rangetanggal[[1]] <= Tanggal & Tanggal <= rangetanggal[[2]])
-    
-    plot <- plot_ly(data_plot, type = "scatter", mode = "lines")|>
-      add_trace(x = ~Tanggal, y = ~Harga, name = "Harga")
-    
+    plot <- ggplot(data_plot) +
+      geom_point(mapping = aes(x = Tanggal, y = Harga)) +
+      geom_line(mapping = aes(x = Tanggal, y = Harga), linewidth = 1.2)
+    if (rangetanggal[[2]] - rangetanggal[[1]] <= 31) {
+      plot <- plot + scale_x_date(date_breaks = "1 day", )
+    }
+    plot <- plot +
+      scale_y_continuous(labels = scales::label_number(
+        big.mark = ".",
+        decimal.mark = ",",
+        accuracy = 100)) +
+      theme(
+        text = element_text(family = "roboto", face = "bold"),
+        plot.title = element_text(size = 20),      # Ukuran judul plot
+        axis.title = element_text(size = 15),      # Ukuran judul sumbu (x dan y)
+        axis.text = element_text(size = 12, colour = "black"),       # Ukuran teks pada sumbu (x dan y)
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_text(size = 15),    # Ukuran judul legenda
+        legend.text = element_text(size = 12),      # Ukuran teks legenda
+        panel.grid.major = element_line(colour = "gray"),
+        panel.background = element_rect(fill = "white")
+      )
     removeModal()
     
-    plot
+    ggplotly(plot)
   }
   
 # percobaan 1 ----
-  output$plot1 <- renderPlotly({
-    req(input$Komoditas1)
-    buatplot(data_longer()[[1]], input$Komoditas1, input$rentangtanggal1)
-  })
-  
-  output$plot2 <- renderPlotly({
-    req(input$Komoditas2)
-    buatplot(data_longer()[[2]], input$Komoditas2, input$rentangtanggal2)
-  })
-
-  output$plot3 <- renderPlotly({
-    req(input$Komoditas3)
-    buatplot(data_longer()[[3]], input$Komoditas3, input$rentangtanggal3)
-  })
+  a <- reactive(tibble(a = c(1,2), b = c(3,4)))
+  output$data_head <- renderPrint(
+    a()
+  )
+  # output$plot1 <- renderPlot({
+  #   req(input$Komoditas1)
+  #   buatplot(data_longer()[[1]], input$Komoditas1, input$rentangtanggal1)
+  # })
+  # 
+  # output$plot2 <- renderPlotly({
+  #   req(input$Komoditas2)
+  #   buatplot(data_longer()[[2]], input$Komoditas2, input$rentangtanggal2)
+  # })
+  # 
+  # output$plot3 <- renderPlotly({
+  #   req(input$Komoditas3)
+  #   buatplot(data_longer()[[3]], input$Komoditas3, input$rentangtanggal3)
+  # })
   
   observe({
     tryCatch({
