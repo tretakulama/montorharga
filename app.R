@@ -32,14 +32,7 @@ ui <- page_navbar(
       ),
       actionButton("reload1", "Reload Data")
     ),
-    verbatimTextOutput(
-      "data_head"
-    )
-    
-    
-    
-    
-    
+    plotlyOutput("plot1")
   ),
   nav_panel(
     "Pasar Babalan",
@@ -58,8 +51,8 @@ ui <- page_navbar(
         format = "dd-mm-yyyy"
       ),
       actionButton("reload2", "Reload Data")
-    )
-    # plotlyOutput("plot2")
+    ),
+    plotlyOutput("plot2")
   ),
   nav_panel(
     "Pasar Kuala",
@@ -79,7 +72,7 @@ ui <- page_navbar(
       ),
       actionButton("reload3", "Reload Data")
     ),
-    # plotlyOutput("plot3")
+    plotlyOutput("plot3")
   ),
   nav_spacer(),
   nav_panel(
@@ -181,52 +174,34 @@ server <- function(input, output) {
     data_plot <- datainput|>
       filter(Komoditas == inputkomoditas)|>
       filter(rangetanggal[[1]] <= Tanggal & Tanggal <= rangetanggal[[2]])
-    plot <- ggplot(data_plot) +
-      geom_point(mapping = aes(x = Tanggal, y = Harga)) +
-      geom_line(mapping = aes(x = Tanggal, y = Harga), linewidth = 1.2)
-    if (rangetanggal[[2]] - rangetanggal[[1]] <= 31) {
-      plot <- plot + scale_x_date(date_breaks = "1 day", )
-    }
-    plot <- plot +
-      scale_y_continuous(labels = scales::label_number(
-        big.mark = ".",
-        decimal.mark = ",",
-        accuracy = 100)) +
-      theme(
-        text = element_text(family = "roboto", face = "bold"),
-        plot.title = element_text(size = 20),      # Ukuran judul plot
-        axis.title = element_text(size = 15),      # Ukuran judul sumbu (x dan y)
-        axis.text = element_text(size = 12, colour = "black"),       # Ukuran teks pada sumbu (x dan y)
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.title = element_text(size = 15),    # Ukuran judul legenda
-        legend.text = element_text(size = 12),      # Ukuran teks legenda
-        panel.grid.major = element_line(colour = "gray"),
-        panel.background = element_rect(fill = "white")
-      )
+    
+    plot <- plot_ly(data_plot, type = "scatter", mode = "lines")|>
+      add_trace(x = ~Tanggal, y = ~Harga, name = "Harga")
+    
     removeModal()
     
-    ggplotly(plot)
+    plot
   }
   
 # percobaan 1 ----
-  a <- reactive(tibble(a = c(1,2), b = c(3,4)))
-  output$data_head <- renderPrint(
-    a()
-  )
-  # output$plot1 <- renderPlot({
-  #   req(input$Komoditas1)
-  #   buatplot(data_longer()[[1]], input$Komoditas1, input$rentangtanggal1)
-  # })
-  # 
-  # output$plot2 <- renderPlotly({
-  #   req(input$Komoditas2)
-  #   buatplot(data_longer()[[2]], input$Komoditas2, input$rentangtanggal2)
-  # })
-  # 
-  # output$plot3 <- renderPlotly({
-  #   req(input$Komoditas3)
-  #   buatplot(data_longer()[[3]], input$Komoditas3, input$rentangtanggal3)
-  # })
+  # a <- reactive(tibble(a = c(1,2), b = c(3,4)))
+  # output$data_head <- renderPrint(
+  #   a()
+  # )
+  output$plot1 <- renderPlotly({
+    req(input$Komoditas1)
+    buatplot(data_longer()[[1]], input$Komoditas1, input$rentangtanggal1)
+  })
+
+  output$plot2 <- renderPlotly({
+    req(input$Komoditas2)
+    buatplot(data_longer()[[2]], input$Komoditas2, input$rentangtanggal2)
+  })
+
+  output$plot3 <- renderPlotly({
+    req(input$Komoditas3)
+    buatplot(data_longer()[[3]], input$Komoditas3, input$rentangtanggal3)
+  })
   
   observe({
     tryCatch({
