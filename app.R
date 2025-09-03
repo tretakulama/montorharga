@@ -114,7 +114,7 @@ server <- function(input, output) {
           ss = link,
           sheet = i,
           col_names = T,
-          col_types = "c"
+          col_types = NULL
         )
       }
     
@@ -139,11 +139,7 @@ server <- function(input, output) {
           names_to = "Tanggal",
           values_to = "Harga"
         )|>
-        mutate(
-          No = as.integer(No),
-          Tanggal = as.Date(as.numeric(Tanggal), origin = "1899-12-30"),
-          Harga = parse_number(Harga, locale = locale(grouping_mark = "."))
-        )
+        mutate(Tanggal = dmy(Tanggal, locale = "id"))
     }
     return(data_longer_)
   })
