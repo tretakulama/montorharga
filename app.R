@@ -141,7 +141,7 @@ server <- function(input, output) {
         )|>
         mutate(
           No = as.integer(No),
-          Tanggal = dmy(Tanggal, locale = "id"),
+          Tanggal = as.Date(as.numeric(Tanggal), origin = "1899-12-30"),
           Harga = parse_number(Harga, locale = locale(grouping_mark = "."))
         )
     }
