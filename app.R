@@ -176,26 +176,8 @@ server <- function(input, output) {
       filter(rangetanggal[[1]] <= Tanggal & Tanggal <= rangetanggal[[2]])
     plot <- ggplot(data_plot) +
       geom_point(mapping = aes(x = Tanggal, y = Harga)) +
-      geom_line(mapping = aes(x = Tanggal, y = Harga), linewidth = 1.2)
-    if (rangetanggal[[2]] - rangetanggal[[1]] <= 31) {
-      plot <- plot + scale_x_date(date_breaks = "1 day", )
-    }
-    plot <- plot +
-      scale_y_continuous(labels = scales::label_number(
-        big.mark = ".",
-        decimal.mark = ",",
-        accuracy = 100)) +
-      theme(
-        text = element_text(family = "roboto", face = "bold"),
-        plot.title = element_text(size = 20),      # Ukuran judul plot
-        axis.title = element_text(size = 15),      # Ukuran judul sumbu (x dan y)
-        axis.text = element_text(size = 12, colour = "black"),       # Ukuran teks pada sumbu (x dan y)
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.title = element_text(size = 15),    # Ukuran judul legenda
-        legend.text = element_text(size = 12),      # Ukuran teks legenda
-        panel.grid.major = element_line(colour = "gray"),
-        panel.background = element_rect(fill = "white")
-      )
+      geom_line(mapping = aes(x = Tanggal, y = Harga))
+
     removeModal()
     
     ggplotly(plot)
