@@ -32,12 +32,34 @@ ui <- fluidPage(
         margin: 20px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       }
+       /* 🔹 Tambahan untuk navbar */
+    .navbar-nav {
+      flex-direction: row;
+    }
+    .navbar-nav li:last-child {
+      margin-left: auto;
+    }
+    
+    /* Atur posisi tab di navbar */
+.navbar-nav {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.navbar-nav li:first-child {
+  margin-right: auto; /* Beranda ke kiri */
+}
+
+.navbar-nav li:last-child {
+  margin-left: auto; /* Pengaturan ke kanan */
+}
     "))
   ),
   
   theme = bs_theme(
     version = 5,
-    bootswatch = "flatly",
+    bootswatch = "flatly", 
     primary = "#0d6efd"
   ),
   tags$style(HTML("
@@ -48,8 +70,16 @@ ui <- fluidPage(
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     margin-bottom: 20px;
   }
-")),
   
+      /* 🔸 Tambahan untuk memperbesar teks navbar */
+    .navbar-nav > li > a {
+      font-size: 18px !important;
+      font-weight: 600;
+      padding: 8px 30px;
+    }
+
+")),
+   
   
   # Icon dan Judul utama
     div(
@@ -114,7 +144,7 @@ ui <- fluidPage(
         column(
           width = 4,
           div(class = "filter-box",
-          h4("Filter Data"),
+          h4("Filter Data", style = "font-weight:bold"),
           selectizeInput(
             "Komoditas1",
             "Pilih Komoditas:",
@@ -146,7 +176,8 @@ ui <- fluidPage(
       fluidRow(
         column(
           width = 4,
-          h4("Filter Data"),
+          div(class = "filter-box",
+          h4("Filter Data", style = "font-weight:bold"),
           selectizeInput(
             "Komoditas2",
             "Pilih Komoditas:",
@@ -163,6 +194,7 @@ ui <- fluidPage(
             width = "100%"
           ),
           actionButton("reload2", "Reload Data", class = "btn btn-primary w-100")
+        )
         ),
         column(
           width = 8,
@@ -177,7 +209,8 @@ ui <- fluidPage(
       fluidRow(
         column(
           width = 4,
-          h4("Filter Data"),
+          div(class = "filter-box",
+          h4("Filter Data", style = "font-weight:bold;"),
           selectizeInput(
             "Komoditas3",
             "Pilih Komoditas:",
@@ -194,6 +227,7 @@ ui <- fluidPage(
             width = "100%"
           ),
           actionButton("reload3", "Reload Data", class = "btn btn-primary w-100")
+        )
         ),
         column(
           width = 8,
@@ -208,6 +242,7 @@ ui <- fluidPage(
       fluidRow(
         column(
           width = 6,
+          div(class = "filter-box",
           textInput(
             "link",
             "Link googlesheets:",
@@ -217,6 +252,7 @@ ui <- fluidPage(
             "simpan",
             "Simpan",
             class = "btn btn-primary mt-2"
+          )
           )
         )
       )
